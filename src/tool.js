@@ -1,7 +1,7 @@
 /**
  * Wex 0.01
  * (c) 2018 Mayako
- * 餐小程序用简易状态机
+ * 小程序用简易状态机
  */
 function testable(target) {
   
