@@ -1,23 +1,36 @@
 /**
- * Wex 0.01
+ * Wex 0.02
  * (c) 2018 Mayako
- * 餐小程序用简易状态机
+ * 小程序用简易状态机
  */
 function testable(target) {
-  
+
 }
 
 @testable
 class Wex {
-  init(args) {
-    this.history=[];
-    this.$state = args.state;
-    this.$Mutation = args.Mutation;
-    this.$Mutation.state = this.$state;
+  constructor (x){
+   
+  }
+  init(args = {}) {
+    assert(typeof Promise !== 'undefined', `Wex requires a Promise polyfill in this browser.`)
+    this.history = [];
+    installModule(args, this);
+    return {
+      state:this.state,
+      on:this.on.bind(this),
+      off:this.off.bind(this),
+      emit:this.emit.bind(this),
+      mapMutations:this.mapMutations
+    }
   }
   // state写入方法
   setState(n, m) {
-    this.history.push({n,m})
+    this.history.push({
+      name: n,
+      new: m,
+      old: this.$state[n]
+    })
     this.emit(n, m);
     this.$state[n] = m;
   }
@@ -97,7 +110,49 @@ class Wex {
     return
   }
 }
+
+function installModule(args, store) {
+  store.$state = args.state;
+  store.$Mutation = args.Mutation;
+  store.$committig = false
+  store.$actions = Object.create(null)
+  store.$wrappedGetters = Object.create(null)
+  store.$subscribers = [];
+  store.mapMutations = mapMutations(args.Mutation, store)
+}
+
+function mapMutations(mutations, store) {
+  var res = {}
+  normalizeMap(mutations).forEach(function (ref) {
+    var key = ref.key;
+    var val = ref.val;
+
+    res[key] = function mappedMutation() {
+      var args = [],
+        len = arguments.length;
+      while (len--) args[len] = arguments[len]; // 一个数组缓存传入的参数
+      // val作为commit函数的第一个参数type， 剩下的参数依次是payload 和 options
+      return store.Mutation[key]({store,args});
+    }
+  })
+  return res
+}
+
+function normalizeMap(map) {
+  return Array.isArray(map) ?
+    map.map(function (key) {
+      return ({
+        key: key,
+        val: key
+      });
+    }) :
+    Object.keys(map).map(function (key) {
+      return ({
+        key: key,
+        val: map[key]
+      });
+    })
+}
 export {
-  curry,
   Wex
 };
