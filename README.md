@@ -79,7 +79,7 @@ import './store'
         getTest,
         setTest
     } = wx.wex.mapMutations;
-setTest('test')
+setPeopleNum(10)
 // 如果需要是值具有响应功能
 wx.wex.on('dishesTypeId', (oj) => {
      this.dishesTypeId = oj;
