@@ -11,7 +11,8 @@
 import {
   isObject,
   isPromise,
-  assert
+  assert,
+  deepCopy
 } from './utils'
 import {
   calCommonExp
@@ -30,8 +31,12 @@ class Wex {
     assert(typeof Promise !== 'undefined', `Wex requires a Promise polyfill in this browser.`)
     this.history = [];
     installModule(args, this);
+    let self = this;
     return {
-      state: this.state,
+      history:this.history,
+      get state() {
+        return deepCopy(self.$state)
+      },
       on: this.on.bind(this),
       off: this.off.bind(this),
       emit: this.emit.bind(this),
@@ -47,20 +52,13 @@ class Wex {
   // state写入方法
   setState(n, m) {
     if (typeof m == 'Array' || typeof m == "object") {
-        console.log(Object.keys(this.$state.test))
-    //   let j = this.$state[n];
-    //   calCommonExp("console.log(this)")
-    //   let i = calCommonExp("this.$state."+n+"." + m[0]);
-    //   console.log(i)
-    //   calCommonExp("this.$state."+n+"." + m[0] + "=" + m[1])
-    //   console.log(this.$state)
-
-    //   this.history.push({
-    //     name: n,
-    //     new: this.$state[n],
-    //     old: j
-    //   })
-
+      this.history.push({
+        name: n,
+        new: m,
+        old: this.$state[n]
+      })
+      this.emit(n, m);
+      this.$state[n] = m;
     } else {
       this.history.push({
         name: n,
@@ -93,7 +91,11 @@ class Wex {
   }
   // 设置只读属性
   get state() {
-    return this.$state;
+    return deepCopy(this.$state);
+  }
+  set state(x) {
+    console.error('[wex] is not allowed change state ')
+    return
   }
   get Mutation() {
     return this.$mutations;
@@ -225,5 +227,5 @@ function normalizeMap(map) {
     })
 }
 export {
-    Wex
+  Wex
 };
