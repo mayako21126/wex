@@ -1,45 +1,102 @@
 /**
- * Wex 0.02
- * (c) 2018 Mayako
- * 小程序用简易状态机
+ * no use strict 
  */
+
+/**
+ * Wex 0.01
+ * (c) 2018 Mayako
+ * 扫码点餐小程序用简易状态机
+ */
+
+import {
+  isObject,
+  isPromise,
+  assert
+} from './utils'
+import {
+  calCommonExp
+} from './tool'
+
 function testable(target) {
 
 }
 
 @testable
 class Wex {
-  constructor (x){
-   
+  constructor(x) {
+
   }
   init(args = {}) {
     assert(typeof Promise !== 'undefined', `Wex requires a Promise polyfill in this browser.`)
     this.history = [];
     installModule(args, this);
     return {
-      state:this.state,
-      on:this.on.bind(this),
-      off:this.off.bind(this),
-      emit:this.emit.bind(this),
-      mapMutations:this.mapMutations
+      state: this.state,
+      on: this.on.bind(this),
+      off: this.off.bind(this),
+      emit: this.emit.bind(this),
+      mapMutations: this.mapMutations,
+      commit: (type, ...args) => {
+        return this.commit(type, {
+          store: this,
+          args
+        })
+      }
     }
   }
   // state写入方法
   setState(n, m) {
-    this.history.push({
-      name: n,
-      new: m,
-      old: this.$state[n]
+    if (typeof m == 'Array' || typeof m == "object") {
+        console.log(Object.keys(this.$state.test))
+    //   let j = this.$state[n];
+    //   calCommonExp("console.log(this)")
+    //   let i = calCommonExp("this.$state."+n+"." + m[0]);
+    //   console.log(i)
+    //   calCommonExp("this.$state."+n+"." + m[0] + "=" + m[1])
+    //   console.log(this.$state)
+
+    //   this.history.push({
+    //     name: n,
+    //     new: this.$state[n],
+    //     old: j
+    //   })
+
+    } else {
+      this.history.push({
+        name: n,
+        new: m,
+        old: this.$state[n]
+      })
+      this.emit(n, m);
+      this.$state[n] = m;
+    }
+
+  }
+  // commit方法
+  commit(_type, _payload) {
+    const type = _type;
+    const payload = unifyPayload.call(this, _payload);
+    const entry = this.$mutations[type]
+    if (!entry) {
+      if (this.$Dev) {
+        console.error(`[wex] unknown mutation type: ${type}`)
+      }
+      return
+    }
+    return entry({
+      state: payload.store.state,
+      setState: payload.store.setState.bind(payload.store),
+      commit: payload.store.commit.bind(payload.store),
+      args: payload.args
     })
-    this.emit(n, m);
-    this.$state[n] = m;
+
   }
   // 设置只读属性
   get state() {
     return this.$state;
   }
   get Mutation() {
-    return this.$Mutation;
+    return this.$mutations;
   }
   // 触发自动响应，用于替代computed
   on(event, fn, ctx) {
@@ -111,9 +168,20 @@ class Wex {
   }
 }
 
+function unifyPayload(...payload) {
+  if (!payload[0].store) {
+    payload = {
+      store: this,
+      args: payload
+    }
+    return payload
+  }
+  return payload[0]
+}
+
 function installModule(args, store) {
   store.$state = args.state;
-  store.$Mutation = args.Mutation;
+  store.$mutations = args.Mutation;
   store.$committig = false
   store.$actions = Object.create(null)
   store.$wrappedGetters = Object.create(null)
@@ -132,7 +200,10 @@ function mapMutations(mutations, store) {
         len = arguments.length;
       while (len--) args[len] = arguments[len]; // 一个数组缓存传入的参数
       // val作为commit函数的第一个参数type， 剩下的参数依次是payload 和 options
-      return store.Mutation[key]({store,args});
+      return store.commit(key, {
+        store,
+        args
+      });
     }
   })
   return res
@@ -154,5 +225,5 @@ function normalizeMap(map) {
     })
 }
 export {
-  Wex
+    Wex
 };
