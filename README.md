@@ -89,5 +89,6 @@ wx.wex.on('dishesTypeId', (oj) => {
 // 无法直接更改state和mutation，使用wx.wex.history可以查询到全部的变更记录
 
 ```
-wex对象提供state(取值),commit(提交方法),on(订阅),emit(触发),off(删除),mapMutations(映射mutations方法),history(变更记录)几个方法
-在mutaions里参数包含state,setState,commit,args4个参数。
+## wex对象提供state(取值),commit(提交方法),on(订阅),emit(触发),off(删除),mapMutations(映射mutations方法),history(变更记录)几个方法
+
+## 在mutaions里参数包含state,setState,commit,args4个参数。
