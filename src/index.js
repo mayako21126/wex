@@ -178,10 +178,11 @@ function unifyPayload(...payload) {
 function installModule(args, store) {
   store.$state = args.state;
   store.$mutations = args.Mutation;
-  store.$committig = false
-  store.$actions = Object.create(null)
-  store.$wrappedGetters = Object.create(null)
-  store.$subscribers = [];
+  
+  // store.$committig = false
+  // store.$actions = Object.create(null)
+  // store.$wrappedGetters = Object.create(null)
+  // store.$subscribers = [];
   store.mapMutations = mapMutations(args.Mutation, store)
 }
 
@@ -195,7 +196,7 @@ function mapMutations(mutations, store) {
       var args = [],
         len = arguments.length;
       while (len--) args[len] = arguments[len]; // 一个数组缓存传入的参数
-      // val作为commit函数的第一个参数type， 剩下的参数依次是payload 和 options
+      
       return store.commit(key, {
         store,
         args
