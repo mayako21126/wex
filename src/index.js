@@ -14,10 +14,6 @@ import {
   assert,
   deepCopy
 } from './utils'
-import {
-  calCommonExp
-} from './tool'
-
 function testable(target) {
 
 }
