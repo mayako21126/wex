@@ -9,8 +9,6 @@
  */
 
 import {
-  isObject,
-  isPromise,
   assert,
   deepCopy
 } from './utils'
