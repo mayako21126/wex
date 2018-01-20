@@ -53,6 +53,7 @@ class Wex {
       })
       this.emit(n, m);
       this.$state[n] = m;
+      this._tmp[n] = m;
     } else {
       this.history.push({
         name: n,
@@ -61,6 +62,7 @@ class Wex {
       })
       this.emit(n, m);
       this.$state[n] = m;
+      this._tmp[n] = m;
     }
 
   }
@@ -75,8 +77,9 @@ class Wex {
       }
       return
     }
+    this._tmp = payload.store.state;
     return entry({
-      state: payload.store.state,
+      state: this._tmp,
       setState: payload.store.setState.bind(payload.store),
       commit: payload.store.commit.bind(payload.store),
       args: payload.args
@@ -85,7 +88,7 @@ class Wex {
   }
   // 设置只读属性
   get state() {
-    return deepCopy(this.$state);
+    return deepCopy(this.$state)
   }
   set state(x) {
     console.error('[wex] is not allowed change state ')
@@ -177,6 +180,7 @@ function unifyPayload(...payload) {
 
 function installModule(args, store) {
   store.$state = args.state;
+  store._tmp = args.state;
   store.$mutations = args.Mutation;
   
   // store.$committig = false
