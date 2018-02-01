@@ -15,7 +15,7 @@ export function find(list, f) {
  * @return {*}
  */
 export function deepCopy(obj, cache = []) {
- 
+
   if (obj === null || typeof obj !== 'object') {
     return obj
   }
@@ -57,4 +57,46 @@ export function isPromise(val) {
 
 export function assert(condition, msg) {
   if (!condition) throw new Error(`[vuex] ${msg}`)
+}
+export function normalizeMap(map) {
+  return Array.isArray(map) ?
+    map.map(function (key) {
+      return ({
+        key: key,
+        val: key
+      });
+    }) :
+    Object.keys(map).map(function (key) {
+      return ({
+        key: key,
+        val: map[key]
+      });
+    })
+}
+
+export function watchState(object, onChange) {
+  
+  const handler = {
+    get(target, property, receiver) {
+      try {
+        // console.log(target,property)
+        // console.log(receiver)
+        // handler.target=target[property]
+        return new Proxy(target[property], handler);
+      } catch (err) {
+        return Reflect.get(target, property, receiver);
+      }
+    },
+    defineProperty(target, property, descriptor) {
+      // console.log(this,descriptor)
+      onChange(target, property, descriptor);
+      return Reflect.defineProperty(target, property, descriptor);
+    },
+    deleteProperty(target, property) {
+      onChange(target, property);
+      return Reflect.deleteProperty(target, property);
+    }
+  };
+
+  return new Proxy(object, handler);
 }

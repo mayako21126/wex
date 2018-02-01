@@ -3,15 +3,19 @@
  */
 
 /**
- * Wex 0.1.8
+ * Wex 0.1.9
  * (c) 2018 Mayako
  * 小程序用简易状态机
  */
 
 import {
   assert,
-  deepCopy
+  deepCopy,
+  watchState,
+  normalizeMap
 } from './utils'
+import im from 'immutable';
+
 function testable(target) {
 
 }
@@ -27,10 +31,12 @@ class Wex {
     installModule(args, this);
     let self = this;
     return {
-      history:this.history,
+      s: this.$state,
+      history: this.history,
       get state() {
         return deepCopy(self.$state)
       },
+      w: this.w,
       on: this.on.bind(this),
       off: this.off.bind(this),
       emit: this.emit.bind(this),
@@ -53,7 +59,6 @@ class Wex {
       })
       this.emit(n, m);
       this.$state[n] = m;
-      this._tmp[n] = m;
     } else {
       this.history.push({
         name: n,
@@ -62,7 +67,6 @@ class Wex {
       })
       this.emit(n, m);
       this.$state[n] = m;
-      this._tmp[n] = m;
     }
 
   }
@@ -77,9 +81,9 @@ class Wex {
       }
       return
     }
-    this._tmp = payload.store.state;
+    let tmp = payload.store.$state;
     return entry({
-      state: this._tmp,
+      state: tmp,
       setState: payload.store.setState.bind(payload.store),
       commit: payload.store.commit.bind(payload.store),
       args: payload.args
@@ -87,13 +91,10 @@ class Wex {
 
   }
   // 设置只读属性
-  get state() {
-    return deepCopy(this.$state)
-  }
-  set state(x) {
-    console.error('[wex] is not allowed change state ')
-    return
-  }
+  // get state() {
+  //   return this._tmp;
+  //   // return deepCopy(this.$state)
+  // }
   get Mutation() {
     return this.$mutations;
   }
@@ -118,14 +119,14 @@ class Wex {
       ctx: ctx
     })
     // 添加之后执行一次触发事件用于更新第一次数据
-    this.emit(event, this.state[event])
+    this.emit(event, this.$state[event])
   }
   emit(event, ...state) {
     this._stores = this._stores || {}
     var store = this._stores[event],
       args
     // 如果触发了不存在的stores，stores必须要提前定义
-    if (this.state[event] == null || this.state[event] == undefined) {
+    if (this.$state[event] == null || this.$state[event] == undefined) {
       console.error(event + ' is undefined')
       return false;
       // this.state[event] =state[0]; 
@@ -135,7 +136,7 @@ class Wex {
       args = state;
       this.$state[event] = args[0]
       for (var i = 0, len = store.length; i < len; i++) {
-        store[i].cb.apply(store[i].ctx, args)
+        store[i].cb.apply(store[i].ctx, deepCopy(args))
       }
     }
   }
@@ -179,13 +180,18 @@ function unifyPayload(...payload) {
 }
 
 function installModule(args, store) {
-  store.$state = args.state;
-  store._tmp = args.state;
+  // store.$state = args.state;
+  let watchedObject = watchState(args.state, (a, b, c) => {
+    //  console.log('Object changed:'+a,b,c);
+  });
+  store.$state = watchedObject;
   store.$mutations = args.Mutation;
-  
+  // 不可变结构
+  // var x  = im.form(args.state)
+  // console.log(x.get('obj'))
   // store.$committig = false
   // store.$actions = Object.create(null)
-  // store.$wrappedGetters = Object.create(null)
+  store.$wrappedGetters = Object.create(null)
   // store.$subscribers = [];
   store.mapMutations = mapMutations(args.Mutation, store)
 }
@@ -200,7 +206,7 @@ function mapMutations(mutations, store) {
       var args = [],
         len = arguments.length;
       while (len--) args[len] = arguments[len]; // 一个数组缓存传入的参数
-      
+
       return store.commit(key, {
         store,
         args
@@ -210,21 +216,7 @@ function mapMutations(mutations, store) {
   return res
 }
 
-function normalizeMap(map) {
-  return Array.isArray(map) ?
-    map.map(function (key) {
-      return ({
-        key: key,
-        val: key
-      });
-    }) :
-    Object.keys(map).map(function (key) {
-      return ({
-        key: key,
-        val: map[key]
-      });
-    })
-}
+
 export {
   Wex
 };
