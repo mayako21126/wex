@@ -3,7 +3,7 @@
  */
 
 /**
- * Wex 0.3.0
+ * Wex 0.2.0
  * (c) 2018 Mayako
  * 小程序用简易状态机
  */
@@ -68,7 +68,13 @@ class Wex {
     //   this.$state[n] = m;
     
     // }
-    let tmp = setHistory(n,m,this,Object.assign({}, this.$state[n]))
+    // let tmp = setHistory(n,m,this,Object.assign({}, this.$state[n]))
+    let tmp ;
+    if(typeof m == 'Array' || typeof m == "object"){
+        tmp = Object.assign({}, m)
+    }else{
+      tmp = m
+    }
     this.emit(n, tmp);
     this.$state[n] = tmp;
   }
@@ -181,7 +187,7 @@ function unifyPayload(...payload) {
 }
 function setHistory(n,m,store,o){
   if (typeof m == 'Array' || typeof m == "object") {
-    let tmp = deepCopy(m)
+    let tmp = Object.assign({}, m)
     store.history.push({
       name: n,
       new: tmp,
@@ -200,6 +206,7 @@ function setHistory(n,m,store,o){
 function installModule(args, store) {
   // store.$state = args.state;
   // 获取数组,用来监听变化，明天需要抽离history方法
+  store.$state = args.state;
   function j(obj, ss, n, o) {
     var c = obj;
     for (var i = 0; i < ss.length - 1; i++) {
@@ -211,7 +218,7 @@ function installModule(args, store) {
   function getState(x, y) {
     return x[y];
   }
-  store.$state = args.state;
+ 
   let handler = (a, b, c) => {
     let oj = j(store.$state, a, b, c);
     // 可能会造成性能问题和不可预知的周期问题，待修改
