@@ -3,7 +3,7 @@
  */
 
 /**
- * Wex 0.1.9
+ * Wex 0.3.0
  * (c) 2018 Mayako
  * 小程序用简易状态机
  */
@@ -12,9 +12,9 @@ import {
   assert,
   deepCopy,
   watchState,
-  normalizeMap
+  normalizeMap,
+  Watch
 } from './utils'
-import im from 'immutable';
 
 function testable(target) {
 
@@ -31,12 +31,10 @@ class Wex {
     installModule(args, this);
     let self = this;
     return {
-      s: this.$state,
       history: this.history,
       get state() {
         return deepCopy(self.$state)
       },
-      w: this.w,
       on: this.on.bind(this),
       off: this.off.bind(this),
       emit: this.emit.bind(this),
@@ -51,24 +49,28 @@ class Wex {
   }
   // state写入方法
   setState(n, m) {
-    if (typeof m == 'Array' || typeof m == "object") {
-      this.history.push({
-        name: n,
-        new: m,
-        old: this.$state[n]
-      })
-      this.emit(n, m);
-      this.$state[n] = m;
-    } else {
-      this.history.push({
-        name: n,
-        new: m,
-        old: this.$state[n]
-      })
-      this.emit(n, m);
-      this.$state[n] = m;
-    }
-
+    // if (typeof m == 'Array' || typeof m == "object") {
+    //   this.history.push({
+    //     name: n,
+    //     new: m,
+    //     old: this.$state[n]
+    //   })
+    //   this.emit(n, m);
+    //   this.$state[n] = m;
+     
+    // } else {
+    //   this.history.push({
+    //     name: n,
+    //     new: m,
+    //     old: this.$state[n]
+    //   })
+    //   this.emit(n, m);
+    //   this.$state[n] = m;
+    
+    // }
+    let tmp = setHistory(n,m,this,Object.assign({}, this.$state[n]))
+    this.emit(n, tmp);
+    this.$state[n] = tmp;
   }
   // commit方法
   commit(_type, _payload) {
@@ -134,7 +136,6 @@ class Wex {
     if (store) {
       store = store.slice(0)
       args = state;
-      this.$state[event] = args[0]
       for (var i = 0, len = store.length; i < len; i++) {
         store[i].cb.apply(store[i].ctx, deepCopy(args))
       }
@@ -178,13 +179,50 @@ function unifyPayload(...payload) {
   }
   return payload[0]
 }
-
+function setHistory(n,m,store,o){
+  if (typeof m == 'Array' || typeof m == "object") {
+    let tmp = deepCopy(m)
+    store.history.push({
+      name: n,
+      new: tmp,
+      old: o
+    })
+    return tmp;
+  } else {
+    store.history.push({
+      name: n,
+      new: m,
+      old: o
+    })
+    return m;
+  }
+}
 function installModule(args, store) {
   // store.$state = args.state;
-  let watchedObject = watchState(args.state, (a, b, c) => {
-    //  console.log('Object changed:'+a,b,c);
-  });
-  store.$state = watchedObject;
+  // 获取数组,用来监听变化，明天需要抽离history方法
+  function j(obj, ss, n, o) {
+    var c = obj;
+    for (var i = 0; i < ss.length - 1; i++) {
+      c = getState(c, ss[i])
+    }
+    setHistory(ss,n,store,o)
+    return c;
+  }
+  function getState(x, y) {
+    return x[y];
+  }
+  store.$state = args.state;
+  let handler = (a, b, c) => {
+    let oj = j(store.$state, a, b, c);
+    // 可能会造成性能问题和不可预知的周期问题，待修改
+    setTimeout(function () {
+      store.emit(a[0],store.$state[a[0]])
+      Watch(oj, handler)
+    }, 0)
+    
+  };
+  Watch(store.$state, handler);
+
   store.$mutations = args.Mutation;
   // 不可变结构
   // var x  = im.form(args.state)

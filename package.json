@@ -1,10 +1,11 @@
 {
   "name": "mayako-wex",
-  "version": "0.1.9",
+  "version": "0.3.0",
   "description": "",
   "main": "./lib/index.js",
   "scripts": {
-    "build": "babel  src/ --out-dir lib/ --source-maps"
+    "build": "babel  src/ --out-dir lib/ --source-maps",
+    "buildn": "babel  src/ --out-dir lib/"
   },
   "repository": {
     "type": "git",
