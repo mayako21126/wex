@@ -151,6 +151,7 @@ export function Watch(obj, callback) {
   //开始监听obj对象,初始path为[]
   that.observe(obj, []);
 }
+// 考虑proxy的兼容性，已废弃
 export function watchState(object, onChange) {
   const handler = {
     get(target, property, receiver) {

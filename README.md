@@ -56,8 +56,9 @@ wx.wex = new Wex().init({
       setState('obj', args[0])
       commit('setTs',args[0])
     },
-    setPeopleNum: ({setState,args}) => {
-      setState('peopleNum', args[0] )
+    setPeopleNum: ({setState,args,state}) => {
+      state.peopleNum = args[0]
+      // setState('peopleNum', args[0] )
     },
     getPeopleNum: ({state}) => {
       return state.peopleNum
@@ -80,6 +81,9 @@ import './store'
         setTest
     } = wx.wex.mapMutations;
 setPeopleNum(10)
+    var {
+        peopleNum
+    } = wx.wex.state
 // 如果需要是值具有响应功能
 wx.wex.on('dishesTypeId', (oj) => {
      this.dishesTypeId = oj;
@@ -87,7 +91,7 @@ wx.wex.on('dishesTypeId', (oj) => {
 // 使用箭头函数保证作用域指向，在回调填写响应后的变化
 // 同一页面内多次订阅同一状态会只记录最后一次订阅，防止多次无意义订阅造成内存泄漏
 // 无法直接更改state和mutation，使用wx.wex.history可以查询到全部的变更记录
-
+// 新增部分数组变异方法，在Mutation里直接操作state也可以观测到变化，不过setState在某些情况下性能更好一些。
 ```
 ## wex对象提供state(取值),commit(提交方法),on(订阅),emit(触发),off(删除),mapMutations(映射mutations方法),history(变更记录)几个方法
 
