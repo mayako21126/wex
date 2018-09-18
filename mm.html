@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="model"  src="src/index.js"></script>
+    <title>Document</title>
+    <script>
+        window.wex = new Wex().init({
+            state: {
+                obj: '咩咩咩咩',
+                TS: 2,
+                peopleNum: 0,
+                dishesTypeId: 1,
+                dishesTypeName: '',
+                test: {
+                    a: 1,
+                    b: { a: 2 }
+                }
+            },
+            Mutation: {
+                getFoodInfo: () => {
+
+                },
+                setTest: ({ setState, args }) => {
+                    setState('test', args[0])
+                },
+                getTest: ({ state }) => {
+                    return state.test;
+                },
+                getdishesTypeId: ({ state }) => {
+                    return state.dishesTypeId
+                },
+                setdishesTypeId: ({ setState, args }) => {
+                    setState('dishesTypeId', args[0]);
+                },
+                setdishesTypeName: ({ setState, args }) => {
+                    setState('dishesTypeName', args[0]);
+                },
+                getdishesTypeName: ({ state }) => {
+                    return state.dishesTypeName;
+                },
+                getObj: ({ state }) => {
+                    return state.obj
+                },
+                tt: ({ state }) => {
+                    return state.TS
+                },
+                setTs: ({ setState, args }) => {
+                    setState('TS', args[0])
+
+                },
+                setObj: ({ setState, commit, args }) => {
+                    setState('obj', args[0])
+                    commit('setTs', args[0])
+                },
+                setPeopleNum: ({ setState, args, state }) => {
+                    state.peopleNum = args[0]
+                    // setState('peopleNum', args[0] )
+                },
+                getPeopleNum: ({ state }) => {
+                    return state.peopleNum
+                }
+
+            }
+        });
+        var {
+            setPeopleNum,
+            getTest,
+            setTest
+        } = wx.wex.mapMutations;
+        setPeopleNum(10)
+        var {
+            peopleNum
+        } = wx.wex.state
+        // 如果需要是值具有响应功能
+        wx.wex.on('dishesTypeId', (oj) => {
+            this.dishesTypeId = oj;
+        }, this)
+
+    </script>
+</head>
+
+<body>
+
+</body>
+
+</html>
