@@ -57,7 +57,7 @@ class Wex {
     //   })
     //   this.emit(n, m);
     //   this.$state[n] = m;
-     
+
     // } else {
     //   this.history.push({
     //     name: n,
@@ -66,13 +66,13 @@ class Wex {
     //   })
     //   this.emit(n, m);
     //   this.$state[n] = m;
-    
+
     // }
     // let tmp = setHistory(n,m,this,Object.assign({}, this.$state[n]))
-    let tmp ;
-    if(typeof m == 'Array' || typeof m == "object"){
-        tmp = Object.assign({}, m)
-    }else{
+    let tmp;
+    if (typeof m == 'Array' || typeof m == "object") {
+      tmp = Object.assign({}, m)
+    } else {
       tmp = m
     }
     this.emit(n, tmp);
@@ -185,7 +185,8 @@ function unifyPayload(...payload) {
   }
   return payload[0]
 }
-function setHistory(n,m,store,o){
+
+function setHistory(n, m, store, o) {
   if (typeof m == 'Array' || typeof m == "object") {
     let tmp = Object.assign({}, m)
     store.history.push({
@@ -203,32 +204,34 @@ function setHistory(n,m,store,o){
     return m;
   }
 }
+
 function installModule(args, store) {
   // store.$state = args.state;
   // 获取数组,用来监听变化，明天需要抽离history方法
   store.$state = args.state;
+
   function j(obj, ss, n, o) {
     var c = obj;
     for (var i = 0; i < ss.length - 1; i++) {
       c = getState(c, ss[i])
     }
-    setHistory(ss,n,store,o)
+    setHistory(ss, n, store, o)
     return c;
   }
+
   function getState(x, y) {
     return x[y];
   }
- 
   let handler = (a, b, c) => {
     let oj = j(store.$state, a, b, c);
     // 可能会造成性能问题和不可预知的周期问题，待修改
     setTimeout(function () {
-      store.emit(a[0],store.$state[a[0]])
-      Watch(oj, handler)
+      store.emit(a[0], store.$state[a[0]])
+      Watch.call(store, oj, handler)
     }, 0)
-    
+
   };
-  Watch(store.$state, handler);
+  Watch.call(store, store.$state, handler);
 
   store.$mutations = args.Mutation;
   // 不可变结构
