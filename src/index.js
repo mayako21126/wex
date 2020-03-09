@@ -13,7 +13,8 @@ import {
   deepCopy,
   watchState,
   normalizeMap,
-  Watch
+  Watch,
+  isObjectValueEqual
 } from './utils'
 
 function testable(target) {
@@ -28,6 +29,7 @@ class Wex {
   init(args = {}) {
     assert(typeof Promise !== 'undefined', `Wex requires a Promise polyfill in this browser.`)
     this.history = [];
+    this.tmp = ''
     installModule(args, this);
     let self = this;
     return {
@@ -130,6 +132,7 @@ class Wex {
     this.emit(event, this.$state[event])
   }
   emit(event, ...state) {
+    var throttle = false
     this._stores = this._stores || {}
     var store = this._stores[event],
       args
@@ -142,8 +145,20 @@ class Wex {
     if (store) {
       store = store.slice(0)
       args = state;
-      for (var i = 0, len = store.length; i < len; i++) {
-        store[i].cb.apply(store[i].ctx, deepCopy(args))
+      if (Object.prototype.toString.call(this.tmp) === Object.prototype.toString.call(args)) {
+        var type = Object.prototype.toString.call(args);
+        if (type == '[object Object]' || type == '[object Array]') {
+          throttle = isObjectValueEqual(this.tmp, args);
+        } else {
+          throttle = this.tmp === args ? true : false;
+        }
+      }
+      this.tmp = args
+      var targs = deepCopy(args)
+      if(!throttle){
+        for (var i = 0, len = store.length; i < len; i++) {
+          store[i].cb.apply(store[i].ctx, targs)
+        }
       }
     }
   }
