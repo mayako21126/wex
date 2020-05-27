@@ -73,7 +73,7 @@ class Wex {
     // let tmp = setHistory(n,m,this,Object.assign({}, this.$state[n]))
     let tmp;
     if (typeof m == 'Array' || typeof m == "object") {
-      tmp = Object.assign({}, m)
+      tmp = JSON.parse(JSON.stringify(m))
     } else {
       tmp = m
     }
@@ -203,7 +203,7 @@ function unifyPayload(...payload) {
 
 function setHistory(n, m, store, o) {
   if (typeof m == 'Array' || typeof m == "object") {
-    let tmp = Object.assign({}, m)
+    let tmp = JSON.parse(JSON.stringify(m))
     store.history.push({
       name: n,
       new: tmp,
