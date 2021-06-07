@@ -17,6 +17,7 @@
     "url": "https://github.com/mayako21126/wex/issues"
   },
   "devDependencies": {
+    "lodash": ">=4.17.21",
     "babel": "^6.5.2",
     "babel-cli": "^6.18.0",
     "babel-eslint": "^7.1.1",
